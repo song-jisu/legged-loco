@@ -6,37 +6,37 @@
 import math
 from dataclasses import MISSING
 
-import omni.isaac.lab.sim as sim_utils
-from omni.isaac.lab.assets import ArticulationCfg, AssetBaseCfg
-from omni.isaac.lab.envs import ManagerBasedRLEnvCfg
-from omni.isaac.lab.managers import CurriculumTermCfg as CurrTerm
-from omni.isaac.lab.managers import EventTermCfg as EventTerm
-from omni.isaac.lab.managers import ObservationGroupCfg as ObsGroup
-from omni.isaac.lab.managers import ObservationTermCfg as ObsTerm
-from omni.isaac.lab.managers import RewardTermCfg as RewTerm
-from omni.isaac.lab.managers import SceneEntityCfg
-from omni.isaac.lab.managers import TerminationTermCfg as DoneTerm
-from omni.isaac.lab.scene import InteractiveSceneCfg
-from omni.isaac.lab.sensors import ContactSensorCfg, RayCasterCfg, patterns
-from omni.isaac.lab.terrains import TerrainImporterCfg, TerrainGeneratorCfg, FlatPatchSamplingCfg
-import omni.isaac.lab.terrains as terrain_gen
-from omni.isaac.lab.utils import configclass
-from omni.isaac.lab.utils.assets import ISAAC_NUCLEUS_DIR, ISAACLAB_NUCLEUS_DIR
-from omni.isaac.lab.utils.noise import AdditiveUniformNoiseCfg as Unoise
-from omni.isaac.lab.sensors.ray_caster import RayCasterCameraCfg, patterns
-from omni.isaac.lab.assets.articulation import ArticulationCfg
-from omni.isaac.lab.actuators import ImplicitActuatorCfg
+import isaaclab.sim as sim_utils
+from isaaclab.assets import ArticulationCfg, AssetBaseCfg
+from isaaclab.envs import ManagerBasedRLEnvCfg
+from isaaclab.managers import CurriculumTermCfg as CurrTerm
+from isaaclab.managers import EventTermCfg as EventTerm
+from isaaclab.managers import ObservationGroupCfg as ObsGroup
+from isaaclab.managers import ObservationTermCfg as ObsTerm
+from isaaclab.managers import RewardTermCfg as RewTerm
+from isaaclab.managers import SceneEntityCfg
+from isaaclab.managers import TerminationTermCfg as DoneTerm
+from isaaclab.scene import InteractiveSceneCfg
+from isaaclab.sensors import ContactSensorCfg, RayCasterCfg, patterns
+from isaaclab.terrains import TerrainImporterCfg, TerrainGeneratorCfg, FlatPatchSamplingCfg
+import isaaclab.terrains as terrain_gen
+from isaaclab.utils import configclass
+from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR, ISAACLAB_NUCLEUS_DIR
+from isaaclab.utils.noise import AdditiveUniformNoiseCfg as Unoise
+from isaaclab.sensors.ray_caster import RayCasterCameraCfg, patterns
+from isaaclab.assets.articulation import ArticulationCfg
+from isaaclab.actuators import ImplicitActuatorCfg
 
 import omni.isaac.leggedloco.leggedloco.mdp as mdp
-from omni.isaac.lab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import ActionsCfg, CurriculumCfg, RewardsCfg, EventCfg, LocomotionVelocityRoughEnvCfg
-from omni.isaac.lab_tasks.manager_based.locomotion.velocity.config.g1.rough_env_cfg import G1Rewards
+from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import ActionsCfg, CurriculumCfg, RewardsCfg, EventCfg, LocomotionVelocityRoughEnvCfg
+from isaaclab_tasks.manager_based.locomotion.velocity.config.g1.rough_env_cfg import G1Rewards
 
 ##
 # Pre-defined configs
 ##
-from omni.isaac.lab_assets import G1_MINIMAL_CFG
+from isaaclab_assets import G1_MINIMAL_CFG
 
-from omni.isaac.lab_tasks.utils.wrappers.rsl_rl import (
+from omni.isaac.leggedloco.utils.rsl_rl_wrapper import (
     RslRlOnPolicyRunnerCfg,
     RslRlPpoActorCriticCfg,
     RslRlPpoAlgorithmCfg,
@@ -161,7 +161,7 @@ class G1SceneCfg(InteractiveSceneCfg):
     # height_scanner = RayCasterCfg(
     #     prim_path="{ENV_REGEX_NS}/Robot/base",
     #     offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
-    #     attach_yaw_only=True,
+    #     ray_alignment="yaw",
     #     pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[1.6, 1.0]),
     #     debug_vis=True,
     #     mesh_prim_paths=["/World/ground"],
@@ -170,7 +170,7 @@ class G1SceneCfg(InteractiveSceneCfg):
         prim_path="{ENV_REGEX_NS}/Robot/pelvis",
         mesh_prim_paths=["/World/ground"],
         update_period=0.1,
-        attach_yaw_only=False,
+        ray_alignment="base",
         # offset=RayCasterCameraCfg.OffsetCfg(pos=(0.60, 0.0, 0.0), rot=(-0.5, 0.5, -0.5, 0.5)),
         # offset=RayCasterCameraCfg.OffsetCfg(pos=(0.00, 0.0, 0.3), rot=(0.579, -0.579, 0.406, -0.406)),
         offset=RayCasterCfg.OffsetCfg(pos=(0.047, 0.0, 0.400), rot=(-0.119, 0.0,0.993,0.0)),
@@ -487,6 +487,8 @@ class G1BaseRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # Randomization
         self.events.push_robot = None
         self.events.add_base_mass = None
+        # base_com was added to the upstream EventCfg in Isaac Lab 2.x; disable it to keep the 1.1 behavior
+        self.events.base_com = None
         self.events.reset_robot_joints.params["position_range"] = (1.0, 1.0)
         self.events.base_external_force_torque.params["asset_cfg"].body_names = ["torso_link"]
         self.events.reset_base.params = {

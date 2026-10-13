@@ -9,39 +9,45 @@ This repo is used to train low-level locomotion policy of Unitree Go2 and H1 in 
 
 
 ## Installation
-1. Create a new conda environment with python 3.10.
+This branch is ported to **Isaac Sim 5.1 + Isaac Lab 2.3.2** (Python 3.11, PyTorch 2.7 / CUDA 12.8), which supports Ubuntu 24.04 and RTX 50-series (Blackwell) GPUs.
+
+1. Create a Python 3.11 virtual environment.
     ```shell
-    conda create -n isaaclab python=3.10
-    conda activate isaaclab
+    uv venv --python 3.11 .venv
+    source .venv/bin/activate
     ```
 
-2. Make sure that Isaac Sim is installed on your machine. Otherwise follow [this guideline](https://docs.omniverse.nvidia.com/isaacsim/latest/installation/install_workstation.html) to install it. If installing via the Omniverse Launcher, please ensure that Isaac Sim 4.1.0 is selected and installed. On Ubuntu 22.04 or higher, you could install it via pip:
+2. Install PyTorch and Isaac Sim.
     ```shell
-    pip install isaacsim-rl==4.1.0 isaacsim-replicator==4.1.0 isaacsim-extscache-physics==4.1.0 isaacsim-extscache-kit-sdk==4.1.0 isaacsim-extscache-kit==4.1.0 isaacsim-app==4.1.0 --extra-index-url https://pypi.nvidia.com
+    uv pip install -U torch==2.7.0 torchvision==0.22.0 --index-url https://download.pytorch.org/whl/cu128
+    uv pip install "isaacsim[all,extscache]==5.1.0" --extra-index-url https://pypi.nvidia.com --index-strategy unsafe-best-match
     ```
 
-3. Install PyTorch.
+3. Clone and install the upstream Isaac Lab v2.3.2. The fixes from the previous Isaac Lab 1.1 fork are already included upstream.
     ```shell
-    pip install torch==2.2.2 --index-url https://download.pytorch.org/whl/cu121
-    ```
-
-4. Clone the Isaac Lab repository, and link extensions. 
-
-    **Note**: This codebase was tested with Isaac Lab 1.1.0 and may not be compatible with newer versions. Please make sure to use the modified version of Isaac Lab provided below, which includes important bug fixes and updates. As Isaac Lab is under active development, we will consider supporting newer versions in the future.
-    ```shell
-    git clone git@github.com:yang-zj1026/IsaacLab.git
+    git clone -b v2.3.2 https://github.com/isaac-sim/IsaacLab.git
     cd IsaacLab
-    cd source/extensions
-    ln -s {THIS_REPO_DIR}/isaaclab_exts/omni.isaac.leggedloco .
-    cd ../..
-    ```
-
-5. Run the Isaac Lab installer script and additionally install rsl rl in this repo.
-    ```shell
     ./isaaclab.sh -i none
-    ./isaaclab.sh -p -m pip install -e {THIS_REPO_DIR}/rsl_rl
+    # flatdict needs pkg_resources at build time, which newer setuptools no longer ships
+    echo "setuptools<70" > /tmp/build-constraints.txt
+    uv pip install -e source/isaaclab --build-constraints /tmp/build-constraints.txt
     cd ..
     ```
+
+4. Install the extension and the bundled rsl_rl of this repo.
+    ```shell
+    uv pip install -e {THIS_REPO_DIR}/isaaclab_exts/omni.isaac.leggedloco -e {THIS_REPO_DIR}/rsl_rl
+    ```
+
+5. Accept the Omniverse EULA once per shell (or answer the prompt on first launch).
+    ```shell
+    export OMNI_KIT_ACCEPT_EULA=YES
+    ```
+
+**Porting notes**
+- `omni.isaac.lab*` imports were renamed to `isaaclab`, `isaaclab_tasks`, `isaaclab_assets`.
+- The bundled rsl_rl (2.0.2) is not compatible with the TensorDict-based wrapper in `isaaclab_rl`, so the Isaac Lab 1.1 RSL-RL wrapper and configs are vendored in `omni.isaac.leggedloco.utils.rsl_rl_wrapper`.
+- `g1_base` disables the `base_com` event that Isaac Lab 2.x added to the default `EventCfg`, to keep the original behavior.
 
 
 ## Usage

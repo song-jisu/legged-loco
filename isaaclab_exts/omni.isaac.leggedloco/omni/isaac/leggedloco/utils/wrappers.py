@@ -9,7 +9,7 @@ The following example shows how to wrap an environment for RSL-RL:
 
 .. code-block:: python
 
-    from omni.isaac.lab_tasks.utils.wrappers.rsl_rl import RslRlVecEnvWrapper
+    from omni.isaac.leggedloco.utils.rsl_rl_wrapper import RslRlVecEnvWrapper
 
     env = RslRlVecEnvWrapper(env)
 
@@ -21,8 +21,8 @@ import torch
 
 from rsl_rl.env import VecEnv
 
-from omni.isaac.lab.envs import DirectRLEnv, ManagerBasedRLEnv
-from omni.isaac.lab_tasks.utils.wrappers.rsl_rl import RslRlVecEnvWrapper
+from isaaclab.envs import DirectRLEnv, ManagerBasedRLEnv
+from omni.isaac.leggedloco.utils.rsl_rl_wrapper import RslRlVecEnvWrapper
 
 
 def get_proprio_obs_dim(env: ManagerBasedRLEnv) -> int:
